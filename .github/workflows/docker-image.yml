@@ -13,10 +13,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Build and run Docker container
+      run: |
+        docker build -t my-image-name:$(date +%s) .
+        docker run -d -p 8080:8080 --name my-running-app my-image-name:$(date +%s)
+    
+    - name: Verify container is running
+      run: docker ps
+    
+    - name: Test local access
+      run: curl -v http://localhost:8080 || echo "Local service not responding"
     
     - name: Set up SSH port forwarding with Serveo
       run: |
-        ls
-        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PasswordAuthentication=no -R 80:127.0.0.1:8080 serveo.net
+        ssh -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o PasswordAuthentication=no \
+            -R 80:localhost:8080 serveo.net
