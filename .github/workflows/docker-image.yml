@@ -15,17 +15,27 @@ jobs:
     
     - name: Build and run Docker container
       run: |
-        docker build -t my-image-name:$(date +%s) .
-        docker run -d -p 8080:8080 --name my-running-app my-image-name:$(date +%s)
-    
-    - name: Verify container is running
-      run: docker ps
-    
-    - name: Test local access
-      run: curl -v http://localhost:8080 || echo "Local service not responding"
+        # Build with consistent tag
+        docker build -t my-app .
+        
+        # Run in background with port mapping
+        docker run -d -p 8080:8080 --name running-app my-app
+        
+        # Wait for container to start
+        sleep 5
+        
+        # Verify container is running
+        docker ps
+        
+        # Test local access
+        curl -v http://localhost:8080 || echo "Local service not responding"
     
     - name: Set up SSH port forwarding with Serveo
       run: |
+        # Install SSH if needed (usually not necessary)
+        which ssh || sudo apt-get update && sudo apt-get install -y openssh-client
+        
+        # Forward port
         ssh -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             -o PasswordAuthentication=no \
